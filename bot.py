@@ -1552,16 +1552,16 @@ FONT_DIR = HERE / "fonts"
 # One look per style: font, text colour, keyword colour, shadow kind (hard 3D drop / glow / outline), bottom tint,
 # alignment and subhook design. Every post gets a different one (never one of the last 4 used).
 STYLES = [
-    {"name": "classic", "font": "Anton-Regular.ttf",        "text": (255, 255, 255), "accent": (226, 38, 38),   "shadow": ("hard", (0, 0, 0)),      "tint": (0, 0, 0),    "align": "center", "sub": "line", "lh": 1.08, "k": 1.00},
-    {"name": "gold",    "font": "AbrilFatface-Regular.ttf", "text": (255, 244, 214), "accent": (255, 194, 51),  "shadow": ("hard", (62, 30, 6)),    "tint": (22, 10, 2),  "align": "center", "sub": "line", "lh": 1.12, "k": 0.92},
-    {"name": "ice",     "font": "BebasNeue-Regular.ttf",    "text": (255, 255, 255), "accent": (39, 211, 255),  "shadow": ("glow", (20, 120, 255)), "tint": (2, 8, 26),   "align": "left",   "sub": "chip", "lh": 1.02, "k": 1.14},
-    {"name": "sun",     "font": "ArchivoBlack-Regular.ttf", "text": (255, 225, 77),  "accent": (255, 255, 255), "shadow": ("hard", (0, 0, 0)),      "tint": (0, 0, 0),    "align": "center", "sub": "line", "lh": 1.10, "k": 0.78},
-    {"name": "pink",    "font": "Poppins-ExtraBold.ttf",    "text": (255, 255, 255), "accent": (255, 61, 129),  "shadow": ("hard", (74, 16, 92)),   "tint": (14, 4, 22),  "align": "left",   "sub": "chip", "lh": 1.12, "k": 0.82},
-    {"name": "lime",    "font": "Staatliches-Regular.ttf",  "text": (255, 255, 255), "accent": (182, 242, 60),  "shadow": ("outline", (6, 40, 20)), "tint": (2, 18, 8),   "align": "center", "sub": "line", "lh": 1.04, "k": 1.14},
-    {"name": "ember",   "font": "RussoOne-Regular.ttf",     "text": (255, 255, 255), "accent": (255, 138, 31),  "shadow": ("hard", (96, 14, 10)),   "tint": (20, 4, 2),   "align": "left",   "sub": "line", "lh": 1.10, "k": 0.86},
-    {"name": "lagoon",  "font": "Righteous-Regular.ttf",    "text": (234, 246, 255), "accent": (46, 230, 197),  "shadow": ("glow", (0, 150, 140)),  "tint": (2, 16, 20),  "align": "center", "sub": "chip", "lh": 1.10, "k": 0.92},
-    {"name": "coral",   "font": "PassionOne-Bold.ttf",      "text": (255, 248, 240), "accent": (255, 107, 87),  "shadow": ("hard", (90, 20, 30)),   "tint": (18, 6, 8),   "align": "center", "sub": "line", "lh": 1.04, "k": 1.14},
-    {"name": "slab",    "font": "AlfaSlabOne-Regular.ttf",  "text": (255, 246, 224), "accent": (255, 176, 0),   "shadow": ("outline", (40, 22, 8)), "tint": (14, 8, 2),   "align": "left",   "sub": "line", "lh": 1.10, "k": 0.82},
+    {"name": "classic", "font": "Anton-Regular.ttf",        "text": (244, 244, 240), "accent": (214, 70, 62),   "shadow": ("hard", (0, 0, 0)),       "tint": (0, 0, 0),    "align": "center", "sub": "line", "lh": 1.08, "k": 1.00},
+    {"name": "gold",    "font": "AbrilFatface-Regular.ttf", "text": (250, 240, 214), "accent": (232, 190, 105), "shadow": ("hard", (62, 30, 6)),     "tint": (22, 10, 2),  "align": "center", "sub": "line", "lh": 1.12, "k": 0.92},
+    {"name": "ice",     "font": "BebasNeue-Regular.ttf",    "text": (244, 246, 248), "accent": (134, 196, 226), "shadow": ("glow", (28, 62, 120)),   "tint": (2, 8, 26),   "align": "left",   "sub": "chip", "lh": 1.02, "k": 1.14},
+    {"name": "sun",     "font": "ArchivoBlack-Regular.ttf", "text": (244, 224, 140), "accent": (244, 244, 240), "shadow": ("hard", (0, 0, 0)),       "tint": (0, 0, 0),    "align": "center", "sub": "line", "lh": 1.10, "k": 0.78},
+    {"name": "pink",    "font": "Poppins-ExtraBold.ttf",    "text": (244, 244, 240), "accent": (232, 118, 156), "shadow": ("hard", (74, 16, 92)),    "tint": (14, 4, 22),  "align": "left",   "sub": "chip", "lh": 1.12, "k": 0.82},
+    {"name": "lime",    "font": "Staatliches-Regular.ttf",  "text": (244, 244, 240), "accent": (190, 224, 120), "shadow": ("outline", (6, 40, 20)),  "tint": (2, 18, 8),   "align": "center", "sub": "line", "lh": 1.04, "k": 1.14},
+    {"name": "ember",   "font": "RussoOne-Regular.ttf",     "text": (244, 244, 240), "accent": (236, 156, 84),  "shadow": ("hard", (96, 14, 10)),    "tint": (20, 4, 2),   "align": "left",   "sub": "line", "lh": 1.10, "k": 0.86},
+    {"name": "lagoon",  "font": "Righteous-Regular.ttf",    "text": (232, 242, 248), "accent": (122, 208, 188), "shadow": ("glow", (10, 90, 90)),    "tint": (2, 16, 20),  "align": "center", "sub": "chip", "lh": 1.10, "k": 0.92},
+    {"name": "coral",   "font": "PassionOne-Bold.ttf",      "text": (250, 244, 236), "accent": (238, 128, 108), "shadow": ("hard", (90, 20, 30)),    "tint": (18, 6, 8),   "align": "center", "sub": "line", "lh": 1.04, "k": 1.14},
+    {"name": "slab",    "font": "AlfaSlabOne-Regular.ttf",  "text": (250, 242, 222), "accent": (232, 182, 88),  "shadow": ("outline", (40, 22, 8)),  "tint": (14, 8, 2),   "align": "left",   "sub": "line", "lh": 1.10, "k": 0.82},
 ]
 RECENT_STYLES = []   # style names of the latest posts (filled from history.json)
 _STYLE_USED = [""]
@@ -1625,7 +1625,7 @@ def _headline_layers(img, items, font, st):
         md = ImageDraw.Draw(mask)
         for x, y, t, _ in items:
             md.text((x, y), t, font=font, fill=255)
-        mask = mask.filter(ImageFilter.GaussianBlur(max(10, size // 7))).point(lambda v: min(255, int(v * 2.2)))
+        mask = mask.filter(ImageFilter.GaussianBlur(max(16, size // 5))).point(lambda v: min(255, int(v * 0.8)))
         img.paste(Image.new("RGB", (W, H), scol), (0, 0), mask)
     d = ImageDraw.Draw(img)
     for x, y, t, _ in items:
