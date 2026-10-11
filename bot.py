@@ -1062,7 +1062,7 @@ def validate_post(post, level=0):
     cap = re.sub(r"\s?\[\d{1,2}\]", "", post["caption"])
     cap = re.sub(r"\s*[\u2014\u2013]\s*", ", ", cap)  # no em/en dashes (AI tell)
     cap = re.sub(r"[*_#`]+", "", cap).strip()
-    if POST_LANG == "bn":
+    if POST_LANG == "en":
         letters = [c for c in cap if c.isalpha()]
         if letters and sum(1 for c in letters if "\u0980" <= c <= "\u09ff") / len(letters) < 0.5:
             return "caption is not written in Bengali"
@@ -1101,7 +1101,7 @@ def add_hashtags(post):
             tags.append(t)
     tail = " ".join(tags[:3])
     if SHOW_SOURCE and post.get("source_title"):
-        label = "\u09a4\u09a5\u09cd\u09af\u09b8\u09c2\u09a4\u09cd\u09b0" if POST_LANG == "bn" else "Source"
+        label = "\u09a4\u09a5\u09cd\u09af\u09b8\u09c2\u09a4\u09cd\u09b0" if POST_LANG == "en" else "Source"
         tail = f'{label}: Wikipedia, "{post["source_title"]}"\n' + tail
     post["caption"] = post["caption"].rstrip() + "\n\n" + tail
 
