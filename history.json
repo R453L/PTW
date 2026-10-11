@@ -6,5 +6,13 @@
   "year": null,
   "cluster": "natural-wonders",
   "country": "France"
+ },
+ {
+  "ts": "2026-10-11T11:54+00:00",
+  "topic": "Ajanta Caves",
+  "source": "Ajanta Caves",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "country": "India"
  }
 ]
