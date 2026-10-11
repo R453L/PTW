@@ -35,9 +35,9 @@ def _models(name, default):
 WRITER_MODELS = _models("WRITER_MODEL", "")    # empty = automatic: best free models
 CHECKER_MODELS = _models("CHECKER_MODEL", "")  # empty = automatic: a different free model family
 IMAGE_MODELS = [CF_MODEL]
-PAGE_NAME = os.environ.get("PAGE_NAME", "World Wonders")   # printed on the picture: use Latin letters
+PAGE_NAME = os.environ.get("PAGE_NAME", "Places To Withness")   # printed on the picture: use Latin letters
 SEND_NOTES = os.environ.get("SEND_NOTES", "0") == "1"
-WATERMARK = os.environ.get("WATERMARK", "AI-generated illustration")
+WATERMARK = os.environ.get("WATERMARK", "AI-generated Image")
 
 # Facebook Page posting (optional: runs only when both values are set)
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "").strip()
@@ -61,7 +61,7 @@ RECENT_CUTOFF = 2100   # no age limit for tourist places (the old history rule i
 WHITE, RED, GOLD = (255, 255, 255), (226, 38, 38), (240, 190, 90)
 
 POST_LANG = os.environ.get("POST_LANG", "en").strip().lower()   # language of the caption: bn = Bengali, en = English
-LANG_NAME = {"bn": "Bengali (Bangla, written in Bengali script)", "en": "English"}.get(POST_LANG, POST_LANG)
+LANG_NAME = {"en": "Bengali (Bangla, written in Bengali script)", "en": "English"}.get(POST_LANG, POST_LANG)
 SKILL_FILE = HERE / "skills" / "fb_seo_writing.md"
 BRAND_TAG = os.environ.get("BRAND_TAG", "#WorldWonders").strip()
 
