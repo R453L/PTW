@@ -61,7 +61,7 @@ RECENT_CUTOFF = 2100   # no age limit for tourist places (the old history rule i
 WHITE, RED, GOLD = (255, 255, 255), (226, 38, 38), (240, 190, 90)
 
 POST_LANG = os.environ.get("POST_LANG", "en").strip().lower()   # language of the caption: bn = Bengali, en = English
-LANG_NAME = {"en": "English (English, written in English script)", "en": "English"}.get(POST_LANG, POST_LANG)
+LANG_NAME = {"en": "English (English, written in English script)", "bn": "English"}.get(POST_LANG, "English")
 SKILL_FILE = HERE / "skills" / "fb_seo_writing.md"
 BRAND_TAG = os.environ.get("BRAND_TAG", "#PlacesToWithness").strip()
 
