@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Places To Withness - Facebook post bot (tourist attractions). Text via Cloudflare Workers AI / a pool of OpenRouter keys, images via Cloudflare Workers AI (FLUX.2 klein 4B)."""
+"""World Wonders - Facebook post bot (tourist attractions). Text via Cloudflare Workers AI / a pool of OpenRouter keys, images via Cloudflare Workers AI (FLUX.2 klein 4B)."""
 import base64
 import hashlib
 import io
@@ -10,6 +10,7 @@ import random
 import re
 import sys
 import time
+import unicodedata
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -35,9 +36,9 @@ def _models(name, default):
 WRITER_MODELS = _models("WRITER_MODEL", "")    # empty = automatic: best free models
 CHECKER_MODELS = _models("CHECKER_MODEL", "")  # empty = automatic: a different free model family
 IMAGE_MODELS = [CF_MODEL]
-PAGE_NAME = os.environ.get("PAGE_NAME", "Places To Withness")   # printed on the picture: use Latin letters
+PAGE_NAME = (os.environ.get("PAGE_NAME") or "Places To Witness").strip()   # printed on the picture
 SEND_NOTES = os.environ.get("SEND_NOTES", "0") == "1"
-WATERMARK = os.environ.get("WATERMARK", "AI-generated Image")
+WATERMARK = os.environ.get("WATERMARK", "AI-generated illustration")
 
 # Facebook Page posting (optional: runs only when both values are set)
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "").strip()
@@ -60,132 +61,68 @@ RECENT_CUTOFF = 2100   # no age limit for tourist places (the old history rule i
 
 WHITE, RED, GOLD = (255, 255, 255), (226, 38, 38), (240, 190, 90)
 
-POST_LANG = os.environ.get("POST_LANG", "en").strip().lower()   # language of the caption: bn = Bengali, en = English
-LANG_NAME = {"en": "English (English, written in English script)", "bn": "English"}.get(POST_LANG, "English")
 SKILL_FILE = HERE / "skills" / "fb_seo_writing.md"
-BRAND_TAG = os.environ.get("BRAND_TAG", "#PlacesToWithness").strip()
+BRAND_TAG = (os.environ.get("BRAND_TAG") or "#PlacesToWitness").strip()
 
-# Topical map: 6 pillars, each a list of Wikipedia article titles (the spokes).
-# The bot rotates through the pillars, so the page stays focused on one niche and balanced across its parts.
-CLUSTERS = {
-    "ancient-wonders": [
-        "Machu Picchu", "Petra", "Angkor Wat", "Great Pyramid of Giza", "Colosseum", "Chichen Itza", "Stonehenge",
-        "Acropolis of Athens", "Pompeii", "Persepolis", "Borobudur", "Teotihuacan", "Karnak", "Abu Simbel temples",
-        "Valley of the Kings", "Mohenjo-daro", "Ajanta Caves", "Ellora Caves", "Sigiriya", "Bagan", "Hampi",
-        "Konark Sun Temple", "Leptis Magna", "Ephesus", "Delphi", "Terracotta Army", "Moai", "Newgrange", "Tikal",
-        "Great Zimbabwe", "Lalibela", "Mycenae", "Knossos", "Hadrian's Wall", "Pont du Gard", "Baalbek",
-        "Carnac stones", "G\u00f6bekli Tepe", "Nazca Lines", "Ayutthaya Historical Park", "Somapura Mahavihara",
-        "Sixty Dome Mosque", "Mahasthangarh", "Kantajew Temple", "Ancient Corinth", "Mesa Verde National Park",
-    ],
-    "natural-wonders": [
-        "Grand Canyon", "Victoria Falls", "Niagara Falls", "Iguazu Falls", "Angel Falls", "Mount Everest", "Mount Fuji",
-        "Matterhorn", "Uluru", "Giant's Causeway", "Cliffs of Moher", "Lake Baikal", "Lake Titicaca", "Salar de Uyuni",
-        "Dead Sea", "Danakil Depression", "Pamukkale", "Cappadocia", "Waitomo Caves", "Antelope Canyon",
-        "Mount Kilimanjaro", "Ngorongoro Crater", "Perito Moreno Glacier", "Zhangjiajie National Forest Park",
-        "Geirangerfjord", "Milford Sound", "Plitvice Lakes National Park", "Jiuzhaigou Valley", "Fingal's Cave",
-        "Socotra", "Mount Roraima", "Table Mountain", "Mount Kinabalu", "Fly Geyser", "Reed Flute Cave",
-        "Son Doong Cave", "Zion National Park", "Bryce Canyon National Park", "Lake Louise (Alberta)", "Skaftafell",
-    ],
-    "iconic-landmarks": [
-        "Eiffel Tower", "Statue of Liberty", "Big Ben", "Tower Bridge", "Sydney Opera House", "Burj Khalifa",
-        "Golden Gate Bridge", "Brooklyn Bridge", "Leaning Tower of Pisa", "Trevi Fountain", "Charles Bridge",
-        "Brandenburg Gate", "Christ the Redeemer (statue)", "Petronas Towers", "Marina Bay Sands", "Tokyo Skytree",
-        "Great Wall of China", "Space Needle", "CN Tower", "Gateway of India", "Victoria Memorial, Kolkata",
-        "Rialto Bridge", "Sydney Harbour Bridge", "Millau Viaduct", "Ponte Vecchio", "Atomium", "Prague Astronomical Clock",
-        "Louvre", "Piazza San Marco", "Spanish Steps", "Sagrada Fam\u00edlia", "Park G\u00fcell", "Burj Al Arab",
-        "Oriental Pearl Tower", "Tokyo Tower", "Auckland Sky Tower", "Table Bay", "Ahsan Manzil", "Shaheed Minar",
-    ],
-    "palaces-and-castles": [
-        "Palace of Versailles", "Neuschwanstein Castle", "Alhambra", "Forbidden City", "Red Fort", "Amer Fort",
-        "Mysore Palace", "Hawa Mahal", "Edinburgh Castle", "Prague Castle", "Windsor Castle", "Himeji Castle",
-        "Topkap\u0131 Palace", "Sch\u00f6nbrunn Palace", "Peterhof Palace", "Ch\u00e2teau de Chambord", "Mont-Saint-Michel",
-        "Kronborg", "Malbork Castle", "Hohenzollern Castle", "Bran Castle", "Lalbagh Fort", "Golconda", "Mehrangarh",
-        "Jaisalmer Fort", "Gwalior Fort", "Potala Palace", "Gyeongbokgung", "Grand Palace (Bangkok)",
-        "Alc\u00e1zar of Seville", "Pena Palace", "Bel\u00e9m Tower", "Buckingham Palace", "Eltz Castle", "Matsumoto Castle",
-        "Chittorgarh Fort", "Rani ki Vav", "Fatehpur Sikri", "Qutb Minar", "Humayun's Tomb",
-    ],
-    "sacred-and-heritage": [
-        "Taj Mahal", "Sheikh Zayed Grand Mosque", "Sultan Ahmed Mosque", "Shwedagon Pagoda", "Golden Temple",
-        "Lotus Temple", "Kiyomizu-dera", "Fushimi Inari-taisha", "Wat Arun", "Meenakshi Temple", "St. Peter's Basilica",
-        "Cologne Cathedral", "Milan Cathedral", "St Mark's Basilica", "Saint Basil's Cathedral", "Westminster Abbey",
-        "Kinkaku-ji", "T\u014ddai-ji", "Temple of Heaven", "Jokhang", "Mahabodhi Temple", "Hassan II Mosque",
-        "Shah Mosque (Isfahan)", "Sheikh Lotfollah Mosque", "Brihadisvara Temple, Thanjavur", "Khajuraho Group of Monuments",
-        "Hampi", "Angkor Thom", "Wat Pho", "Haw Par Villa", "Sensoji", "Notre-Dame de Paris", "Chartres Cathedral",
-        "Duomo di Firenze", "Florence Cathedral", "Pantheon, Rome", "Basilica Cistern", "Great Mosque of Djenn\u00e9",
-        "Hagar Qim", "Itsukushima Shrine",
-    ],
-    "islands-and-parks": [
-        "Santorini", "Bora Bora", "Phi Phi Islands", "Amalfi Coast", "Cinque Terre", "Ha Long Bay", "Galápagos Islands",
-        "Great Barrier Reef", "Cox's Bazar", "Saint Martin's Island", "Sundarbans", "Ratargul Swamp Forest",
-        "Banff National Park", "Yellowstone National Park", "Yosemite National Park", "Serengeti National Park",
-        "Torres del Paine National Park", "Kruger National Park", "Lake Como", "Lake Bled", "Hallstatt", "Lofoten",
-        "Faroe Islands", "Jeju Island", "Palawan", "Komodo National Park", "Raja Ampat Islands", "Whitsunday Islands",
-        "Fiordland National Park", "Plitvice Lakes National Park", "Phang Nga Bay", "Maui", "Capri", "Mykonos",
-        "Zanzibar", "Gal\u00e1pagos National Park", "Okavango Delta", "Etosha National Park", "Chitwan National Park",
-        "Kaziranga National Park",
-    ],
-}
+WRITER_BASE = """You are a travel writer, strict fact checker and viral Facebook copywriter for the page "Places To Witness": jaw-dropping places around the world that people dream of seeing in person (landmarks, natural wonders, ancient sites, palaces, temples, islands, parks, odd corners of the map).
+You create ORIGINAL posts, each about ONE place. Everything is plain American English. The headline lines are printed on the picture in ALL CAPS.
 
-# backup searches, used only when the curated pillar has nothing left
-CLUSTER_KEYWORDS = {
-    "ancient-wonders": ["ancient ruins archaeological site", "UNESCO World Heritage archaeological site", "ancient temple complex", "rock-cut cave temples"],
-    "natural-wonders": ["waterfall tourist attraction", "canyon national park", "glacier tourist attraction", "mountain tourist destination", "cave tourist attraction"],
-    "iconic-landmarks": ["famous landmark tower", "famous bridge tourist attraction", "observation tower", "monument landmark city"],
-    "palaces-and-castles": ["castle tourist attraction", "royal palace museum", "fort UNESCO World Heritage Site"],
-    "sacred-and-heritage": ["famous temple tourist attraction", "cathedral tourist attraction", "mosque architecture landmark", "pagoda UNESCO"],
-    "islands-and-parks": ["island tourist destination", "national park wildlife", "marine park coral reef", "beach destination"],
-}
-
-WRITER_BASE = """You are a travel-content writer, strict fact checker and Facebook SEO copywriter for a page about the best places to visit in the world: landmarks, natural wonders, heritage sites, palaces, islands and parks.
-You create ORIGINAL Facebook posts, each about ONE place. The caption is written in <<LANG>>. The headline lines and the subhook (printed on the picture) are ALWAYS English capital letters.
+HOOK RULE (most important after accuracy):
+- Find what makes a reader think "wait, this is real?" or "I need to see this": the strangest true detail, the scale, the setting, a contrast, the odd story behind the place, exactly as the SOURCE TEXT states it. A striking number helps if the source has one, but a number is NOT required: a strange origin, an extreme setting or a surprising detail is just as good.
+- Avoid brochure talk ("beautiful", "popular with tourists", "rich history"). Prefer one specific, checkable thing.
 
 SOURCE-GROUNDING RULES (absolute):
 - You receive SOURCE TEXT from Wikipedia. Use ONLY facts that are stated in it. Never add a number, date, measurement, name, cause or "first / biggest / oldest / only / most visited" claim that the SOURCE TEXT does not state. Use no outside knowledge for facts.
-- Write every number, year and measurement with ordinary digits 0-9, exactly as in the SOURCE TEXT. Do no arithmetic and no unit conversion (if the source says miles, write miles).
-- Every proper name (place, person, dynasty, river, mountain, organisation) must appear in the SOURCE TEXT. If the output language is not English: write each place name in <<LANG>> followed by the English name in brackets the first time it appears, and the English name must always appear at least once, because people search for it.
-- Pick the single most surprising concrete fact the SOURCE TEXT clearly states (a number, size, age, record, odd detail, a contrast) and build the post around it. Return {"skip": true, "reason": "..."} only if the article has no such fact at all.
+- Write every number, year and measurement EXACTLY as it appears in the SOURCE TEXT, with ordinary digits. Do no arithmetic and no unit conversion (if the source says miles, write miles).
+- Every proper name (place, person, dynasty, river, mountain, organisation) in your text must appear in the SOURCE TEXT.
+- Return {"skip": true, "reason": "..."} only if the article is not about a place a traveller can visit, or contains nothing interesting at all.
 - "evidence": 3 to 6 objects {"claim": "...", "quote": "..."} where quote is copied WORD FOR WORD from the SOURCE TEXT (6 to 30 words). Together they must cover EVERY number, year and name used in the headline and in the caption.
 - Never put citation markers like [1] or URLs in any text field.
 - Do not invent visitor information. Season, access, tickets, opening hours, safety, visa and price advice only if the SOURCE TEXT states it exactly.
 
 TOPIC RULE:
 - The post must be about a place a traveller can visit: a landmark, monument, site, natural attraction, park, island, palace, temple, bridge, tower, district.
-- Return skip for articles about a person, an event, a war, a disaster, politics, a religious dispute, a disputed border, or a place that the source describes mainly through tragedy or violence, or that is closed to visitors.
+- Return skip for articles about a person, an event, a war, a disaster, politics, a religious dispute, a disputed border, or a place that the source describes mainly through tragedy or violence, or that is closed to visitors. NEVER choose topics about executions, crime, violence, atrocities, fatal accidents, weapons or anything graphic or sensitive.
 
 <<SEO_RULES>>
 
 IMAGE RULES:
-- The picture shows the PLACE itself, accurate to what the SOURCE TEXT describes (its structure, material, setting, landscape, climate). The place is the clear hero, fully in frame. Natural daylight or golden hour. No people close to the camera, no writing, no signs, no logos, no brand names.
+- The picture shows the PLACE itself, accurate to what the SOURCE TEXT describes (its structure, material, setting, landscape, climate). The place is the clear hero, fully in frame. Natural daylight, golden hour or a dramatic sky. No people close to the camera, no writing, no signs, no logos, no brand names.
 - Give TWO different visual ideas for the same place: image_prompt_a is the main picture, image_prompt_b is another angle or moment. Each is ONE vivid description of 40-70 words in English: the place FIRST, then the setting, the light, the weather, the mood.
 
-HEADLINE RULES (printed on the picture, English):
-- headline_lines: 2 or 3 ALL-CAPS lines forming ONE short curiosity hook, 8-12 words in total, each line MAX 28 characters. It teases a surprise and does NOT retell the whole fact. Use only a number or year that the SOURCE TEXT states. Never name living people.
-- Examples: ["[2,000] YEARS OLD", "AND STILL HIDDEN FROM", "MOST MAPS"], ["A CITY CARVED", "INTO [ROSE-RED]", "CLIFFS"].
-- Red highlight: wrap ONE key word or number (two short groups at most) in [square brackets]. The brackets hug the words. Never put a whole line in brackets. No parentheses.
-- subhook: 3-6 words, ALL CAPS, a short teaser under the headline. It adds NO new fact.
-- The headline must be truthful and supported by the source.
+HEADLINE RULES (printed on the picture):
+- headline_lines: 2 or 3 ALL-CAPS lines forming ONE punchy hook, 4-9 words in total, each line MAX 22 characters. It must stop a scrolling thumb: awe, mystery, contrast, a dare or a short question. It does NOT retell the fact, it does NOT need a number and it does NOT need the place name. No travel clichés ("EXPLORE THE WORLD", "BUCKET LIST", "HIDDEN GEM"). Never name living people.
+- Good examples: ["THE PLACE", "TIME [FORGOT]"], ["IS THIS REALLY", "[EARTH]?"], ["A CITY CARVED", "INTO [STONE]"], ["WHERE THE DESERT", "KEEPS A [SECRET]"], ["WALK ACROSS", "THE [CLOUDS]"]. The hook must still be true for this place according to the SOURCE TEXT (do not write "CARVED INTO STONE" unless the source says so).
+- Red highlight: wrap ONE key word or number (two short groups at most) in [square brackets]. The brackets hug the word; punctuation stays OUTSIDE ("[EARTH]?"). Never put a whole line in brackets. Do not use parentheses.
+- subhook: the place name and country in ALL CAPS, for example "PETRA, JORDAN".
 
 CAPTION RULES (write like a real person, not like an AI):
-- 150-230 words in <<LANG>>. If the language is Bengali: natural, conversational modern Bengali (cholito bhasha), short sentences mixed with a few longer ones, no stiff translated phrasing, no stock phrases such as "প্রকৃতির লীলাভূমি", "স্বর্গের টুকরো", "অপরূপ সৌন্দর্য" unless the source says it.
-- Structure: the direct-answer first line, then 3-5 short paragraphs separated by a blank line (write \\n\\n inside the JSON string), then ONE easy question about the place as the last line.
-- Mix very short sentences (2-6 words) with long ones (25+ words). Use contractions and plain words. No lists of three adjectives, no moral at the end.
-- Never use: delve, tapestry, testament, realm, pivotal, crucial, moreover, furthermore, additionally, notably, ultimately, breathtaking, nestled, stunning, "a must-visit", "hidden gem", "bucket list".
-- Plain text only. No emojis, no markdown, no hashtags, no em dashes, no lists inside the caption.
+- 150-260 words, plain American English, in the voice of ONE sharp, slightly opinionated travel nerd telling a friend about a place that stunned him. The user message gives you a VOICE and a SHAPE: follow them and no other template.
+- Start with the surprising thing itself (an odd detail, the scale, what a visitor actually finds). The first sentence is under 120 characters. The place name and its country must both appear within the first two sentences. Never start with "Picture", "Imagine", "Nestled", "Welcome to", "In a world", "Have you ever", or a scene-setting opener.
+- Mix very short sentences (2-6 words) with long winding ones (25+ words). Break the rhythm on purpose. Fragments are fine. Use contractions. One small aside is fine.
+- Use the odd, specific words of the SOURCE TEXT (names of things, materials, trades, rulers, rivers, rooms) instead of general words. Say what people actually built, carved, climbed, crossed, found.
+- Never write vague summary lines such as "marked a turning point", "played a crucial role", "paved the way", "a testament to", "stands as", "boasts", "a haven for", "a must-visit", "hidden gem", "bucket list", "breathtaking", "nestled", "stunning", "vibrant", "rich tapestry". Never use the words: delve, tapestry, testament, realm, pivotal, crucial, moreover, furthermore, additionally, notably, ultimately; never write "it's worth noting", "in conclusion", "not just ... but", "Here's the thing".
+- No lists of three adjectives or three parallel clauses. No moral, no summary, no lesson, no sales pitch.
+- 3 to 6 paragraphs of UNEVEN length, separated by a blank line (write \\n\\n inside the JSON string). One paragraph may be one short sentence.
+- Ending: ONE of these, never two: a blunt last line, a small joke, or one short question. Never two questions in the text. Never ask people to like, share, comment or tag.
+- Never fake first-hand experience: no "I visited", no invented traveller quotes. You may have opinions about the facts.
+- Facts: keep every number, year and name exactly as in the SOURCE TEXT. Own words: never copy six words in a row from the SOURCE TEXT.
+- Plain text only. No em dashes, no emojis, no markdown, no hashtags inside the text.
 
 JSON FORMAT: output valid JSON only. Inside string values write paragraph breaks as the escaped characters \\n (never real line breaks) and write every double quote inside text as \\" . No comments, no trailing commas.
 
 Return ONLY one JSON object, no markdown fences, with keys:
-skip, topic (the English name of the place, exactly as in the source title), country (English), fact, headline_lines (array), subhook, image_prompt_a, image_prompt_b, caption, hashtags (array of exactly 2), evidence (array described above)."""
+skip, topic (the English name of the place, exactly as in the source title), country (English), fact, headline_lines (array), subhook, image_prompt_a, image_prompt_b, caption, hashtags (array of exactly 2: the place as one word like "#MachuPicchu" and one topical tag like "#TravelFacts"), evidence (array described above)."""
 
 
 def build_writer_system():
-    """The writer prompt = grounding rules + the Facebook SEO/writing rules from skills/fb_seo_writing.md (edit that file to tune the style)."""
+    """The writer prompt = grounding and voice rules + the short Facebook SEO rules from skills/fb_seo_writing.md (edit that file to tune it)."""
     try:
         rules = SKILL_FILE.read_text(encoding="utf-8").strip()
     except OSError:
         rules = ""
         log("skills/fb_seo_writing.md not found: writing without the SEO rules")
-    return WRITER_BASE.replace("<<SEO_RULES>>", rules).replace("<<LANG>>", LANG_NAME)
+    return WRITER_BASE.replace("<<SEO_RULES>>", rules)
 
 
 CHECKER_SYSTEM = """You are a strict fact checker. You receive SOURCE TEXT (from Wikipedia, in English) and a DRAFT social post (headline in English, caption possibly in another language: compare the MEANING).
@@ -194,14 +131,14 @@ Decide whether every factual claim in the draft's headline and caption is suppor
 
 Flag ONLY hard factual problems: a number, date, measurement, name or event that is not in the source; wrong cause and effect; "first / only / oldest / biggest / most visited" style claims the source does not make; numbers attached to the wrong thing; practical visitor advice (season, tickets, access, safety) that the source does not state.
 
-Do NOT flag rhetorical questions, metaphors, transitions, mood, short summaries of what the source says, or the closing question. Wording like "stunning" is not a factual claim unless it changes the facts.
+Do NOT flag the headline hook when it is a rhetorical teaser or question that does not assert a false or unsupported fact. Do NOT flag rhetorical questions, metaphors, transitions, mood, short summaries of what the source says, or the closing question. Wording like "stunning" is not a factual claim unless it changes the facts.
 
 Do NOT use outside knowledge to approve a claim. If the source does not say it, it is unsupported.
 
 Return ONLY one JSON object, no markdown fences:
 {"faithful": true or false, "unsupported": ["..."], "hook_score": 1-10}
 
-hook_score rates how strongly the headline would stop a Facebook scroller (10 = jaw-dropping specific number and contrast, 1 = vague travel-brochure line)."""
+hook_score rates how strongly the headline would stop a Facebook scroller (10 = makes you NEED to see the place: awe, mystery or a striking contrast; 5 = decent; 1 = dull brochure line). A number is NOT needed for a high score."""
 
 CHECKER_WEB_SYSTEM = CHECKER_SYSTEM.replace(
     "Do NOT use outside knowledge to approve a claim. If the source does not say it, it is unsupported.",
@@ -236,7 +173,7 @@ def load_history():
 
 
 def save_history(items):
-    HISTORY.write_text(json.dumps(items[-400:], ensure_ascii=False, indent=1), encoding="utf-8")
+    HISTORY.write_text(json.dumps(items[-20000:], ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def _json_candidates(text):
@@ -743,13 +680,36 @@ _TRIED = set()
 _LAST_SOURCE = []   # the last article we fetched, the last article fetched
 
 
-TYPES_BY_CLUSTER = {
-    "ancient-wonders": ["ancient ruins", "archaeological site", "ancient temple", "rock-cut cave temples", "prehistoric monument", "ancient city", "megalithic site"],
-    "natural-wonders": ["waterfall", "canyon", "glacier", "mountain peak", "cave", "volcano", "lake", "hot springs", "desert", "gorge"],
-    "iconic-landmarks": ["famous landmark", "bridge", "observation tower", "monument", "historic square", "historic district", "famous museum"],
-    "palaces-and-castles": ["castle", "royal palace", "fort", "historic mansion", "citadel"],
-    "sacred-and-heritage": ["temple", "cathedral", "mosque", "pagoda", "monastery", "historic church", "World Heritage Site"],
-    "islands-and-parks": ["island", "national park", "beach", "coral reef", "nature reserve", "botanical garden", "wildlife sanctuary"],
+# No preset topics. Every run looks up new places on Wikipedia: a random country + a random kind of place, either through a
+# Wikipedia category ("Waterfalls of Norway") or a search. Places already posted (history.json) are skipped for good.
+PILLARS = {
+    "ancient-wonders": {
+        "cats": ["Archaeological sites in {c}", "Ruins in {c}", "World Heritage Sites in {c}", "Tourist attractions in {c}"],
+        "search": ["ancient ruins", "archaeological site", "ancient temple complex", "rock-cut cave temples", "prehistoric monument", "ancient city"],
+    },
+    "natural-wonders": {
+        "cats": ["Waterfalls of {c}", "Caves of {c}", "Canyons and gorges of {c}", "Volcanoes of {c}", "Mountains of {c}", "Lakes of {c}",
+                 "Rock formations of {c}", "Hot springs of {c}", "Deserts of {c}", "Glaciers of {c}", "Tourist attractions in {c}"],
+        "search": ["waterfall", "canyon", "glacier", "mountain peak", "cave system", "volcano", "lake", "hot springs", "desert landscape", "gorge"],
+    },
+    "iconic-landmarks": {
+        "cats": ["Tourist attractions in {c}", "Bridges in {c}", "Towers in {c}", "Monuments and memorials in {c}", "Squares in {c}", "Landmarks in {c}"],
+        "search": ["famous landmark", "bridge", "observation tower", "monument", "historic square", "historic district"],
+    },
+    "palaces-and-castles": {
+        "cats": ["Castles in {c}", "Palaces in {c}", "Forts in {c}", "World Heritage Sites in {c}", "Tourist attractions in {c}"],
+        "search": ["castle", "royal palace", "fort", "historic mansion", "citadel"],
+    },
+    "sacred-and-heritage": {
+        "cats": ["Buddhist temples in {c}", "Hindu temples in {c}", "Cathedrals in {c}", "Mosques in {c}", "Monasteries in {c}", "Churches in {c}",
+                 "World Heritage Sites in {c}"],
+        "search": ["temple", "cathedral", "mosque", "pagoda", "monastery", "historic church", "World Heritage Site"],
+    },
+    "islands-and-parks": {
+        "cats": ["National parks of {c}", "Islands of {c}", "Beaches of {c}", "Nature reserves in {c}", "Botanical gardens in {c}",
+                 "Protected areas of {c}", "Tourist attractions in {c}"],
+        "search": ["island", "national park", "beach", "coral reef", "nature reserve", "botanical garden", "wildlife sanctuary"],
+    },
 }
 COUNTRIES = (
     "Afghanistan, Albania, Algeria, Andorra, Angola, Argentina, Armenia, Australia, Austria, Azerbaijan, Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium, Belize, "
@@ -764,66 +724,69 @@ COUNTRIES = (
     "United Kingdom, United States, Uruguay, Uzbekistan, Vanuatu, Venezuela, Vietnam, Yemen, Zambia, Zimbabwe, Scotland, Wales, Sicily, Tuscany, Patagonia, Siberia, Tibet, "
     "Hawaii, Alaska, Bavaria, Andalusia, Provence, Himalayas, Rajasthan, Kerala, Bali, Java, Sumatra, Borneo, Yunnan, Sichuan, Hokkaido, Kyoto"
 ).split(", ")
+THE_COUNTRIES = {"United States", "United Kingdom", "Netherlands", "Philippines", "Bahamas", "Gambia", "Czech Republic", "United Arab Emirates",
+                 "Maldives", "Solomon Islands", "Dominican Republic"}
 PLACE_WORDS = re.compile(r"\b(located|situated|visitors?|tourists?|tourism|attraction|heritage|national park|temple|castle|palace|fort|waterfall|mountain|island|beach|"
                          r"lake|cave|canyon|glacier|monument|cathedral|mosque|museum|ruins|archaeological|UNESCO|reserve|garden|bridge|tower)\b", re.I)
-MIN_PLACE_WORDS = int(os.environ.get("MIN_PLACE_WORDS", "6"))
-CURATED_SHARE = float(os.environ.get("CURATED_SHARE", "0.35"))   # how often a hand-picked title is tried before the endless search
+BORING_TITLE = re.compile(r"^(List of|Lists of|Timeline of|Index of|Outline of|Tourism in|Culture of|History of|Geography of|Transport in|Template|Category|Portal)", re.I)
 
 
-def _looks_like_place(text):
+def _looks_like_place(text, min_words):
     head = text[:300].lower()
     if "may refer to" in head or "disambiguation" in head:
         return False
-    return len(PLACE_WORDS.findall(text)) >= MIN_PLACE_WORDS
+    return len(PLACE_WORDS.findall(text)) >= min_words
 
 
-def _accept(t, cluster, how, min_len, check_place):
+def wiki_category(cat, limit=500):
+    data = wiki_get({"action": "query", "list": "categorymembers", "cmtitle": "Category:" + cat, "cmlimit": limit, "cmtype": "page", "cmnamespace": 0})
+    return [x["title"] for x in data.get("query", {}).get("categorymembers", [])]
+
+
+def _accept(t, cluster, level):
     _TRIED.add(t)
     text = wiki_extract(t)
-    if len(text) < min_len or (check_place and not _looks_like_place(text)):
+    if len(text) < (1500 if level == 0 else 1000) or not _looks_like_place(text, 6 if level == 0 else 4):
         log(f"skipped {t!r}: not found, too short or not a visitable place")
         return None
-    log(f"article {t!r} accepted ({how}, pillar {cluster}, {len(text)} characters)")
+    log(f"article {t!r} accepted (pillar {cluster}, {len(text)} characters)")
     _LAST_SOURCE[:] = [t, text]
     _PICKED[0] = cluster
     return t, text
 
 
 def _choose_cluster():
-    """Topical-map rotation: take the pillar used least in the latest posts, so the page stays balanced across its pillars."""
+    """Rotation over the pillars: take the one used least in the latest posts, so the page stays balanced."""
     counts = Counter(RECENT_CLUSTERS[-12:])
-    names = list(CLUSTERS)
+    names = list(PILLARS)
     random.shuffle(names)
     return min(names, key=lambda n: counts.get(n, 0))
 
 
 def pick_source(used, level=0):
-    """Endless supply: pillar by rotation, then either a hand-picked title or a fresh Wikipedia search (attraction type x country).
-    Titles already posted are skipped, so the page never runs out of places."""
+    """A brand-new place every run: random country + random kind of place, from a Wikipedia category (60%) or a search."""
     cluster = _choose_cluster()
-    pool = [t for t in CLUSTERS[cluster] if t not in used and t not in _TRIED]
-    random.shuffle(pool)
-    if pool and random.random() < CURATED_SHARE:
-        for t in pool[:2]:
-            got = _accept(t, cluster, "curated", 1200, False)
-            if got:
-                return got
-    for _ in range(3):
-        query = f"{random.choice(TYPES_BY_CLUSTER[cluster])} {random.choice(COUNTRIES)}"
-        log("search:", query)
-        titles = [
-            t for t in wiki_search(query, 15)
-            if not re.match(r"(List of|Timeline of|Index of|Outline of)", t) and not BANNED_TITLE.search(t)
-            and not SENSITIVE_TITLE.search(t) and t not in used and t not in _TRIED
-        ]
+    for _ in range(6):
+        country = random.choice(COUNTRIES)
+        titles = []
+        if random.random() < 0.6:
+            cat = random.choice(PILLARS[cluster]["cats"]).format(c=("the " + country) if country in THE_COUNTRIES else country)
+            try:
+                titles = wiki_category(cat)
+            except Exception as e:  # noqa: BLE001
+                log("category lookup failed:", e)
+            log(f"category: {cat} ({len(titles)} pages)")
+        if not titles:
+            query = f"{random.choice(PILLARS[cluster]['search'])} {country}"
+            log("search:", query)
+            titles = wiki_search(query, 20)
+        titles = [t for t in titles if not BORING_TITLE.match(t) and not BANNED_TITLE.search(t) and not SENSITIVE_TITLE.search(t)
+                  and t not in used and t not in _TRIED]
+        random.shuffle(titles)
         for t in titles[:3]:
-            got = _accept(t, cluster, "search", 1500, True)
+            got = _accept(t, cluster, level)
             if got:
                 return got
-    for t in pool[:3]:
-        got = _accept(t, cluster, "curated", 1200, False)
-        if got:
-            return got
     raise ValueError("no usable article this time")
 
 
@@ -848,12 +811,9 @@ def quote_supported(quote, src_norm, src_tokens):
     return False
 
 
-BN_DIGITS = str.maketrans("\u09e6\u09e7\u09e8\u09e9\u09ea\u09eb\u09ec\u09ed\u09ee\u09ef", "0123456789")
-
-
 def numbers_in(text, factual_only):
     out = set()
-    text = re.sub(r"(\d)([\u0980-\u09ff])", r"\1 \2", str(text).translate(BN_DIGITS))
+    text = str(text)
     for m in NUM_RE.finditer(text):
         cur, num, decade, unit = m.group(1), m.group(2), m.group(3), m.group(4)
         n = num.replace(",", "").rstrip(".")
@@ -893,18 +853,18 @@ def verify_grounding(post, source):
 
 
 VOICES = [
-    "warm and curious, like a friend who just came back from the trip",
+    "dry and wry, with one deadpan aside",
+    "warm and curious, like a storyteller at a pub",
+    "blunt and matter-of-fact, with a little sarcasm",
+    "amused and a bit incredulous",
     "calm and precise, with one vivid comparison",
-    "amused and a bit incredulous, with one light aside",
-    "matter-of-fact, quietly impressed",
-    "enthusiastic but never exaggerated",
 ]
-
 SHAPES = [
-    "Open with the surprising number or detail, then explain what the place is and where it is, then the lesser-known detail, then end with the question.",
-    "Open with what the place is and why it is famous in one line, then the odd detail most guides skip, then a short paragraph with the number and its meaning for a visitor, then the question.",
-    "Open with a one-line claim most people would doubt, prove it in two short paragraphs, then name the nearby or related places the source mentions, then the question.",
-    "Open in the middle of the scene (what a visitor sees), jump back to explain how the place came to be, finish with the question.",
+    "Open with the oddest detail, then back up and explain where it is and how it came about, and end on a blunt line.",
+    "Open with what a visitor actually faces there, then reveal the strange fact behind it, and end with one short question.",
+    "Open with a one-line claim most people would doubt, prove it in two short paragraphs, and end with a small joke.",
+    "Tell it as a quick chain of what you find as you get closer, every paragraph a different length, and end with no moral at all.",
+    "Open in the middle of the scene, jump back to explain, and finish on a surprising detail.",
 ]
 
 
@@ -913,7 +873,6 @@ def write_post(title, source, recent):
     user = (
         f"SOURCE ARTICLE TITLE: {title}\n\nSOURCE TEXT:\n{source}\n\n"
         f"Do NOT repeat or closely resemble any of these recent topics: {json.dumps(recent)}\n"
-        f"OUTPUT LANGUAGE for the caption: {LANG_NAME}.\n"
         f"VOICE for the caption: {random.choice(VOICES)}.\nSHAPE for the caption: {random.choice(SHAPES)}\n"
         "Write the post using ONLY the SOURCE TEXT. Return the JSON object now."
     )
@@ -929,11 +888,18 @@ def check_faithful(post, source):
 
 
 def ensure_highlight(lines):
-    """If the model forgot [brackets], auto-highlight numbers, prices and years in red."""
+    """If the model forgot [brackets], highlight a number/price/year in red, else the longest word of the last line."""
     if any("[" in l for l in lines):
         return lines
     pat = re.compile(r"(\$?£?€?\d[\d,\.]*\s?(?:CENTS?|PENNIES|PENCE|DOLLARS?|POUNDS?|%|YEARS?|HOURS?|DAYS?|WEEKS?|MPH|KM/H|KPH|HP|MILES?|KM|TONS?|TONNES?)?)", re.I)
-    return [pat.sub(lambda m: f"[{m.group(1).strip()}]" + (" " if m.group(1).endswith(" ") else ""), l) for l in lines]
+    out = [pat.sub(lambda m: f"[{m.group(1).strip()}]" + (" " if m.group(1).endswith(" ") else ""), l) for l in lines]
+    if any("[" in l for l in out):
+        return out
+    words = re.findall(r"[A-Za-z']{4,}", out[-1])
+    if words:
+        w = max(words, key=len)
+        out[-1] = out[-1].replace(w, f"[{w}]", 1)
+    return out
 
 
 def _runs(line):
@@ -1040,8 +1006,8 @@ def validate_post(post, level=0):
             return "headline missing"
         lines = [str(post.get("topic") or "WORLD TRAVEL").upper()]
     lines = [fix_brackets(str(l)).strip() for l in lines if str(l).strip()]
-    if len(lines) == 1 or len(lines) > 4 or any(len(re.sub(r"[\[\]]", "", l)) > 32 for l in lines):
-        lines = rewrap_headline(lines)
+    if len(lines) == 1 or len(lines) > 4 or any(len(re.sub(r"[\[\]]", "", l)) > 26 for l in lines):
+        lines = rewrap_headline(lines, 22)
     lines = limit_red(lines)[:4]
     post["headline_lines"] = lines
     words = len(" ".join(lines).split())
@@ -1050,7 +1016,7 @@ def validate_post(post, level=0):
         m_year = re.search(r"\d{4}", str(post.get("year") or ""))
         if any(y > RECENT_CUTOFF for y in years) or (m_year and int(m_year.group()) > RECENT_CUTOFF and "bc" not in str(post.get("year")).lower()):
             return f"too recent (limit {RECENT_CUTOFF})"
-        if not 6 <= words <= 15:
+        if not 3 <= words <= 12:
             return f"headline word count {words}"
     cwords = len(str(post.get("caption", "")).split())
     if level == 0 and not 120 <= cwords <= 450:
@@ -1062,10 +1028,9 @@ def validate_post(post, level=0):
     cap = re.sub(r"\s?\[\d{1,2}\]", "", post["caption"])
     cap = re.sub(r"\s*[\u2014\u2013]\s*", ", ", cap)  # no em/en dashes (AI tell)
     cap = re.sub(r"[*_#`]+", "", cap).strip()
-    if POST_LANG == "en":
-        letters = [c for c in cap if c.isalpha()]
-        if letters and sum(1 for c in letters if "\u0980" <= c <= "\u09ff") / len(letters) < 0.5:
-            return "caption is not written in English"
+    letters = [c for c in cap if c.isalpha()]
+    if letters and sum(1 for c in letters if ord(c) > 0x24F) / len(letters) > 0.03:
+        return "caption is not written in English"
     post["caption"] = cap
     post["headline_lines"] = ensure_highlight(lines)
     return None
@@ -1096,13 +1061,12 @@ def scrub_numbers(post, source, title):
 def add_hashtags(post):
     tags = []
     for t in list(post.get("hashtags") or []) + [BRAND_TAG]:
-        t = "#" + re.sub(r"[^A-Za-z0-9_\u0980-\u09FF]", "", str(t))
+        t = "#" + re.sub(r"[^A-Za-z0-9_]", "", str(t))
         if len(t) > 3 and t.lower() not in [x.lower() for x in tags]:
             tags.append(t)
     tail = " ".join(tags[:3])
     if SHOW_SOURCE and post.get("source_title"):
-        label = "\u09a4\u09a5\u09cd\u09af\u09b8\u09c2\u09a4\u09cd\u09b0" if POST_LANG == "en" else "Source"
-        tail = f'{label}: Wikipedia, "{post["source_title"]}"\n' + tail
+        tail = f'Source: Wikipedia, "{post["source_title"]}"\n' + tail
     post["caption"] = post["caption"].rstrip() + "\n\n" + tail
 
 
@@ -1224,8 +1188,6 @@ Return ONLY JSON: {{"caption": "..."}}"""
 def humanize_caption(post, source):
     """Free and never blocking: if anything goes wrong the original caption (cleaned) is used."""
     original = deai(post["caption"])
-    if POST_LANG != "en":
-        return original  # the English-only humanizer would damage Bengali
     best, best_score = original, ai_likeness(original)
     start_score = best_score
     allowed = numbers_in(source, False)
@@ -1264,7 +1226,7 @@ def emergency_post(title, source):
     caption = "\n\n".join(sents) + f'\n\nWhat part of this surprises you most?\n\nSource: Wikipedia, "{title}"\n#WorldTravel #TravelFacts'
     return {
         "topic": title, "source_title": title, "year": "", "country": "",
-        "headline_lines": ensure_highlight(rewrap_headline(["THE STORY OF", f"[{title.upper()}]"])),
+        "headline_lines": ensure_highlight(rewrap_headline([f"[{title.upper()}]", "A PLACE TO WITNESS"], 22)),
         "cluster": _PICKED[0], "subhook": "A PLACE WORTH KNOWING", "caption": caption,
         "image_prompt_a": f"{title}, a famous travel destination, wide view, natural daylight, travel photograph",
         "image_prompt_b": f"{title}, the same destination at golden hour, a different angle, travel photograph",
@@ -1585,13 +1547,54 @@ def fallback_background():
     return _vintage(base, "mono")
 
 
-def load_font(size):
-    path = FONT_PATH if FONT_PATH.exists() else FALLBACK_FONT
+FONT_DIR = HERE / "fonts"
+
+# One look per style: font, text colour, keyword colour, shadow kind (hard 3D drop / glow / outline), bottom tint,
+# alignment and subhook design. Every post gets a different one (never one of the last 4 used).
+STYLES = [
+    {"name": "classic", "font": "Anton-Regular.ttf",        "text": (255, 255, 255), "accent": (226, 38, 38),   "shadow": ("hard", (0, 0, 0)),      "tint": (0, 0, 0),    "align": "center", "sub": "line", "lh": 1.08, "k": 1.00},
+    {"name": "gold",    "font": "AbrilFatface-Regular.ttf", "text": (255, 244, 214), "accent": (255, 194, 51),  "shadow": ("hard", (62, 30, 6)),    "tint": (22, 10, 2),  "align": "center", "sub": "line", "lh": 1.12, "k": 0.92},
+    {"name": "ice",     "font": "BebasNeue-Regular.ttf",    "text": (255, 255, 255), "accent": (39, 211, 255),  "shadow": ("glow", (20, 120, 255)), "tint": (2, 8, 26),   "align": "left",   "sub": "chip", "lh": 1.02, "k": 1.14},
+    {"name": "sun",     "font": "ArchivoBlack-Regular.ttf", "text": (255, 225, 77),  "accent": (255, 255, 255), "shadow": ("hard", (0, 0, 0)),      "tint": (0, 0, 0),    "align": "center", "sub": "line", "lh": 1.10, "k": 0.78},
+    {"name": "pink",    "font": "Poppins-ExtraBold.ttf",    "text": (255, 255, 255), "accent": (255, 61, 129),  "shadow": ("hard", (74, 16, 92)),   "tint": (14, 4, 22),  "align": "left",   "sub": "chip", "lh": 1.12, "k": 0.82},
+    {"name": "lime",    "font": "Staatliches-Regular.ttf",  "text": (255, 255, 255), "accent": (182, 242, 60),  "shadow": ("outline", (6, 40, 20)), "tint": (2, 18, 8),   "align": "center", "sub": "line", "lh": 1.04, "k": 1.14},
+    {"name": "ember",   "font": "RussoOne-Regular.ttf",     "text": (255, 255, 255), "accent": (255, 138, 31),  "shadow": ("hard", (96, 14, 10)),   "tint": (20, 4, 2),   "align": "left",   "sub": "line", "lh": 1.10, "k": 0.86},
+    {"name": "lagoon",  "font": "Righteous-Regular.ttf",    "text": (234, 246, 255), "accent": (46, 230, 197),  "shadow": ("glow", (0, 150, 140)),  "tint": (2, 16, 20),  "align": "center", "sub": "chip", "lh": 1.10, "k": 0.92},
+    {"name": "coral",   "font": "PassionOne-Bold.ttf",      "text": (255, 248, 240), "accent": (255, 107, 87),  "shadow": ("hard", (90, 20, 30)),   "tint": (18, 6, 8),   "align": "center", "sub": "line", "lh": 1.04, "k": 1.14},
+    {"name": "slab",    "font": "AlfaSlabOne-Regular.ttf",  "text": (255, 246, 224), "accent": (255, 176, 0),   "shadow": ("outline", (40, 22, 8)), "tint": (14, 8, 2),   "align": "left",   "sub": "line", "lh": 1.10, "k": 0.82},
+]
+RECENT_STYLES = []   # style names of the latest posts (filled from history.json)
+_STYLE_USED = [""]
+
+
+def pick_style():
+    fresh = [s for s in STYLES if s["name"] not in RECENT_STYLES[-4:]] or STYLES
+    return random.choice(fresh)
+
+
+def load_font(size, name=None):
+    path = FONT_DIR / (name or "Anton-Regular.ttf")
+    if not path.exists():
+        path = FONT_PATH if FONT_PATH.exists() else FALLBACK_FONT
     return ImageFont.truetype(str(path), size)
 
 
-def parse_segments(line):
-    return [(t, RED if red else WHITE) for t, red in _runs(line) if t]
+def _ascii(s):
+    return unicodedata.normalize("NFKD", str(s)).encode("ascii", "ignore").decode("ascii")
+
+
+def location_tag(post):
+    """Subhook under the headline: 'PLACE, COUNTRY' (built here, so it is always right and never adds a claim)."""
+    topic = re.sub(r"\s*\(.*?\)", "", _ascii(post.get("topic") or "")).strip(" ,")
+    country = _ascii(post.get("country") or "").strip(" ,")
+    for cand in (f"{topic}, {country}" if topic and country else "", topic, country):
+        if cand and len(cand) <= 34:
+            return cand.upper()
+    return (topic or country)[:34].upper()
+
+
+def parse_segments(line, st):
+    return [(t, st["accent"] if red else st["text"]) for t, red in _runs(line) if t]
 
 
 def _smooth(x):
@@ -1599,18 +1602,50 @@ def _smooth(x):
     return x * x * (3 - 2 * x)
 
 
-def _spaced(draw, cx, y, text, font, fill, spacing=3, shadow=True):
-    total = sum(font.getlength(c) + spacing for c in text) - spacing
-    x = cx - total / 2
+def _spaced(draw, x0, y, text, font, fill, spacing=3, shadow=True):
+    x = x0
     for c in text:
         if shadow:
             draw.text((x + 2, y + 3), c, font=font, fill=(0, 0, 0))
         draw.text((x, y), c, font=font, fill=fill)
         x += font.getlength(c) + spacing
+    return x
 
 
-def overlay_text(photo, headline_lines, subhook):
-    """Full-bleed photo, dark gradient at the bottom, big headline with red keywords, small subline, watermarks."""
+def _spaced_width(text, font, spacing=3):
+    return sum(font.getlength(c) + spacing for c in text) - spacing
+
+
+def _headline_layers(img, items, font, st):
+    """glow / 3D drop shadow / outline behind the text, then the text itself."""
+    kind, scol = st["shadow"]
+    size = font.size
+    if kind == "glow":
+        mask = Image.new("L", (W, H), 0)
+        md = ImageDraw.Draw(mask)
+        for x, y, t, _ in items:
+            md.text((x, y), t, font=font, fill=255)
+        mask = mask.filter(ImageFilter.GaussianBlur(max(10, size // 7))).point(lambda v: min(255, int(v * 2.2)))
+        img.paste(Image.new("RGB", (W, H), scol), (0, 0), mask)
+    d = ImageDraw.Draw(img)
+    for x, y, t, _ in items:
+        d.text((x + 2, y + 4), t, font=font, fill=(0, 0, 0))
+    if kind == "hard":
+        for i in range(1, max(4, size // 18) + 1):
+            for x, y, t, _ in items:
+                d.text((x + i * 0.7, y + i), t, font=font, fill=scol)
+    stroke = max(3, size // 26) if kind == "outline" else 0
+    for x, y, t, c in items:
+        if stroke:
+            d.text((x, y), t, font=font, fill=c, stroke_width=stroke, stroke_fill=scol)
+        else:
+            d.text((x, y), t, font=font, fill=c)
+
+
+def overlay_text(photo, headline_lines, subhook, style=None):
+    """Full-bleed photo, tinted gradient at the bottom, big hook in this post's own font and colours, location line, watermarks."""
+    st = style or pick_style()
+    _STYLE_USED[0] = st["name"]
     img = photo.convert("RGB")
     if img.size != (W, H):
         img = ImageOps.fit(img, (W, H), method=Image.LANCZOS)
@@ -1619,54 +1654,82 @@ def overlay_text(photo, headline_lines, subhook):
     px = grad.load()
     for y in range(H):
         f = y / H
-        if f < 0.50:
+        if f < 0.48:
             a = 0.0
         elif f < 0.72:
-            a = 0.90 * _smooth((f - 0.50) / 0.22)
+            a = 0.90 * _smooth((f - 0.48) / 0.24)
         else:
             a = 0.90 + 0.08 * ((f - 0.72) / 0.28)
         px[0, y] = int(255 * a)
-    img.paste(Image.new("RGB", (W, H), (0, 0, 0)), (0, 0), grad.resize((W, H)))
+    img.paste(Image.new("RGB", (W, H), st["tint"]), (0, 0), grad.resize((W, H)))
 
-    lines = [parse_segments(l.upper()) for l in headline_lines if l.strip()]
-    max_w, max_h = W - 120, int(H * 0.29)
-    size = 108
+    left = st["align"] == "left"
+    margin = 72
+    max_w, max_h = W - 2 * margin, int(H * 0.31)
+    sub = _ascii(subhook).upper().strip()
+    lines = [parse_segments(_ascii(l).upper(), st) for l in headline_lines if l.strip()]
+    size = min(int(112 * st["k"]), 140)
     while size > 40:
-        font = load_font(size)
-        lh = int(size * 1.08)
+        font = load_font(size, st["font"])
+        lh = int(size * st["lh"])
         widths = [sum(font.getlength(t) for t, _ in segs) for segs in lines]
-        total = lh * len(lines) + (int(size * 0.62) if subhook.strip() else 0)
+        extra = (int(size * 0.62) if sub and st["sub"] == "line" else 0) + (74 if sub and st["sub"] == "chip" else 0) + (26 if left else 0)
+        total = lh * len(lines) + extra
         if max(widths) <= max_w and total <= max_h:
             break
         size -= 4
 
     draw = ImageDraw.Draw(img)
     y = H - 104 - total
+    if left:  # short accent bar above the headline
+        draw.rectangle([margin, y, margin + 120, y + 10], fill=st["accent"])
+        y += 26
+    if sub and st["sub"] == "chip":
+        cf = load_font(34, "BebasNeue-Regular.ttf")
+        cw = _spaced_width(sub, cf, 4) + 40
+        cx = margin if left else (W - cw) / 2
+        lum = 0.3 * st["accent"][0] + 0.59 * st["accent"][1] + 0.11 * st["accent"][2]
+        draw.rounded_rectangle([cx, y, cx + cw, y + 52], radius=10, fill=st["accent"])
+        _spaced(draw, cx + 20, y + 6, sub, cf, (0, 0, 0) if lum > 135 else (255, 255, 255), spacing=4, shadow=False)
+        y += 74
+
+    items = []
     for segs, width in zip(lines, widths):
-        x = (W - width) / 2
+        x = margin if left else (W - width) / 2
         for text, color in segs:
-            draw.text((x + 3, y + 4), text, font=font, fill=(0, 0, 0))
-            draw.text((x, y), text, font=font, fill=color)
+            items.append((x, y, text, color))
             x += font.getlength(text)
         y += lh
-    sub = subhook.upper().strip()
-    if sub:
-        _spaced(draw, W / 2, y + int(size * 0.10), sub, load_font(max(26, int(size * 0.34))), WHITE, spacing=3)
+    _headline_layers(img, items, font, st)
+
+    draw = ImageDraw.Draw(img)
+    if sub and st["sub"] == "line":
+        sf = load_font(max(30, int(size * 0.36)), "BebasNeue-Regular.ttf")
+        sw = _spaced_width(sub, sf, 5)
+        bar = 56
+        total_w = sw + 2 * (bar + 18) if not left else bar + 18 + sw
+        x0 = margin if left else (W - total_w) / 2
+        yy = y + int(size * 0.17)
+        mid = yy + sf.size * 0.55
+        draw.rectangle([x0, mid - 2, x0 + bar, mid + 2], fill=st["accent"])
+        xt = _spaced(draw, x0 + bar + 18, yy, sub, sf, st["text"], spacing=5)
+        if not left:
+            draw.rectangle([xt + 13, mid - 2, xt + 13 + bar, mid + 2], fill=st["accent"])
 
     # watermarks: page name (bottom-left) and the AI label (bottom-right)
     if PAGE_NAME:
-        wf = load_font(24)
-        draw.ellipse([30, H - 46, 46, H - 30], fill=GOLD)
+        wf = load_font(26, "BebasNeue-Regular.ttf")
+        draw.ellipse([30, H - 46, 46, H - 30], fill=st["accent"])
         x = 58
         for c in PAGE_NAME.upper():
-            draw.text((x + 1, H - 46), c, font=wf, fill=(0, 0, 0))
-            draw.text((x, H - 47), c, font=wf, fill=(238, 238, 238))
-            x += wf.getlength(c) + 2
+            draw.text((x + 1, H - 48), c, font=wf, fill=(0, 0, 0))
+            draw.text((x, H - 49), c, font=wf, fill=(238, 238, 238))
+            x += wf.getlength(c) + 3
     if WATERMARK:
-        af = load_font(20)
+        af = load_font(24, "BebasNeue-Regular.ttf")
         label = WATERMARK.upper()
-        aw = sum(af.getlength(c) + 1 for c in label)
-        draw.text((W - aw - 30, H - 44), label, font=af, fill=(205, 205, 205))
+        aw = _spaced_width(label, af, 2)
+        _spaced(draw, W - aw - 30, H - 48, label, af, (205, 205, 205), spacing=2, shadow=False)
     return img
 
 
@@ -1749,6 +1812,7 @@ def run():
     recent = [h["topic"] for h in history[-40:]]
     used = {h.get("source") for h in history if h.get("source")}
     RECENT_CLUSTERS[:] = [h.get("cluster") for h in history[-12:] if h.get("cluster")]
+    RECENT_STYLES[:] = [h.get("style") for h in history[-6:] if h.get("style")]
     try:
         post = build_post(recent, used)  # always returns something unless Wikipedia itself is unreachable
     except RuntimeError as e:
@@ -1761,7 +1825,7 @@ def run():
     except Exception as e:  # noqa: BLE001
         log("no picture could be made, using the text card:", e)
         photo = fallback_background()
-    img = overlay_text(photo, post["headline_lines"], post.get("subhook", "") if SHOW_SUBHOOK else "")
+    img = overlay_text(photo, post["headline_lines"], location_tag(post) if SHOW_SUBHOOK else "")
 
     sent = False
     try:
@@ -1786,6 +1850,7 @@ def run():
                 "source": post.get("source_title"),
                 "year": post.get("year"),
                 "cluster": post.get("cluster"),
+                "style": _STYLE_USED[0],
                 "country": post.get("country"),
             }
         )
