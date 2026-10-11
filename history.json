@@ -38,5 +38,13 @@
   "year": null,
   "cluster": "sacred-and-heritage",
   "country": "India"
+ },
+ {
+  "ts": "2026-10-11T12:38+00:00",
+  "topic": "Chacao Channel Bridge",
+  "source": "Chacao Channel bridge",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "country": "Chile"
  }
 ]
