@@ -32,5 +32,14 @@
   "cluster": "natural-wonders",
   "style": "coral",
   "country": "Slovakia and Ukraine"
+ },
+ {
+  "ts": "2026-10-11T21:24+00:00",
+  "topic": "Harlech Castle",
+  "source": "Harlech Castle",
+  "year": null,
+  "cluster": "palaces-and-castles",
+  "style": "lagoon",
+  "country": "Wales"
  }
 ]
