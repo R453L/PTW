@@ -2,7 +2,7 @@ name: post
 
 on:
   schedule:
-    - cron: "0 * * * *"   # every hour, same as WTH
+    - cron: "0 */3 * * *"   # 8 posts a day
   workflow_dispatch:
 
 permissions:
@@ -32,9 +32,6 @@ jobs:
           FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          PAGE_NAME: ${{ vars.PAGE_NAME }}
-          POST_LANG: ${{ vars.POST_LANG }}
-          BRAND_TAG: ${{ vars.BRAND_TAG }}
         run: python bot.py
       - name: Save history
         run: |
@@ -42,4 +39,3 @@ jobs:
           git config user.email "bot@users.noreply.github.com"
           git add history.json
           git diff --cached --quiet || (git commit -m "history" && git pull --rebase && git push)
-
