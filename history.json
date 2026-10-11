@@ -46,5 +46,13 @@
   "year": null,
   "cluster": "iconic-landmarks",
   "country": "Chile"
+ },
+ {
+  "ts": "2026-10-11T13:03+00:00",
+  "topic": "Teotihuacan",
+  "source": "Teotihuacan",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "country": "Mexico"
  }
 ]
