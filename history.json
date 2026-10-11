@@ -14,5 +14,13 @@
   "year": null,
   "cluster": "ancient-wonders",
   "country": "India"
+ },
+ {
+  "ts": "2026-10-11T11:58+00:00",
+  "topic": "Pena Palace",
+  "source": "Pena Palace",
+  "year": null,
+  "cluster": "palaces-and-castles",
+  "country": "Portugal"
  }
 ]
