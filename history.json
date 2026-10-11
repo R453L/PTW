@@ -30,5 +30,13 @@
   "year": null,
   "cluster": "islands-and-parks",
   "country": "Tanzania"
+ },
+ {
+  "ts": "2026-10-11T12:34+00:00",
+  "topic": "Daitya Sudan Temple",
+  "source": "Daitya Sudan Temple",
+  "year": null,
+  "cluster": "sacred-and-heritage",
+  "country": "India"
  }
 ]
