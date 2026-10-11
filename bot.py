@@ -1065,7 +1065,7 @@ def validate_post(post, level=0):
     if POST_LANG == "en":
         letters = [c for c in cap if c.isalpha()]
         if letters and sum(1 for c in letters if "\u0980" <= c <= "\u09ff") / len(letters) < 0.5:
-            return "caption is not written in Bengali"
+            return "caption is not written in English"
     post["caption"] = cap
     post["headline_lines"] = ensure_highlight(lines)
     return None
