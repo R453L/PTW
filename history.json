@@ -22,5 +22,13 @@
   "year": null,
   "cluster": "palaces-and-castles",
   "country": "Portugal"
+ },
+ {
+  "ts": "2026-10-11T12:21+00:00",
+  "topic": "Zanzibar",
+  "source": "Zanzibar",
+  "year": null,
+  "cluster": "islands-and-parks",
+  "country": "Tanzania"
  }
 ]
