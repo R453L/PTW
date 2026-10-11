@@ -41,5 +41,14 @@
   "cluster": "palaces-and-castles",
   "style": "lagoon",
   "country": "Wales"
+ },
+ {
+  "ts": "2026-10-11T21:31+00:00",
+  "topic": "Nagoya",
+  "source": "Nagoya",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "lime",
+  "country": "Japan"
  }
 ]
