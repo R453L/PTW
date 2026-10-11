@@ -23,5 +23,14 @@
   "cluster": "sacred-and-heritage",
   "style": "ice",
   "country": "Cambodia"
+ },
+ {
+  "ts": "2026-10-11T18:30+00:00",
+  "topic": "Vihorlat Mountains",
+  "source": "Vihorlat Mountains",
+  "year": null,
+  "cluster": "natural-wonders",
+  "style": "coral",
+  "country": "Slovakia and Ukraine"
  }
 ]
