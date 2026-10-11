@@ -6,5 +6,13 @@
   "year": null,
   "cluster": "islands-and-parks",
   "country": "Canada"
+ },
+ {
+  "ts": "2026-10-11T15:31+00:00",
+  "topic": "Ramoche Temple",
+  "source": "Ramoche Temple",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "country": "China"
  }
 ]
