@@ -50,5 +50,14 @@
   "cluster": "iconic-landmarks",
   "style": "lime",
   "country": "Japan"
+ },
+ {
+  "ts": "2026-10-12T00:30+00:00",
+  "topic": "Archaeology of the United Arab Emirates",
+  "source": "Archaeology of the United Arab Emirates",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "style": "gold",
+  "country": "United Arab Emirates"
  }
 ]
