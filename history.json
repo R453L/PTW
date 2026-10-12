@@ -86,5 +86,14 @@
   "cluster": "islands-and-parks",
   "style": "coral",
   "country": "Guyana"
+ },
+ {
+  "ts": "2026-10-12T09:30+00:00",
+  "topic": "Volcanoes National Park",
+  "source": "Volcanoes National Park",
+  "year": null,
+  "cluster": "natural-wonders",
+  "style": "ember",
+  "country": "Rwanda"
  }
 ]
