@@ -95,5 +95,14 @@
   "cluster": "natural-wonders",
   "style": "ember",
   "country": "Rwanda"
+ },
+ {
+  "ts": "2026-10-12T12:30+00:00",
+  "topic": "Red Castle of Tripoli",
+  "source": "Red Castle of Tripoli",
+  "year": null,
+  "cluster": "palaces-and-castles",
+  "style": "lime",
+  "country": "Libya"
  }
 ]
