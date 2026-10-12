@@ -59,5 +59,14 @@
   "cluster": "ancient-wonders",
   "style": "gold",
   "country": "United Arab Emirates"
+ },
+ {
+  "ts": "2026-10-12T03:30+00:00",
+  "topic": "Kagyu Samye Ling Monastery and Tibetan Centre",
+  "source": "Kagyu Samye Ling Monastery and Tibetan Centre",
+  "year": null,
+  "cluster": "sacred-and-heritage",
+  "style": "pink",
+  "country": "Scotland"
  }
 ]
