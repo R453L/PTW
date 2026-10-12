@@ -122,5 +122,14 @@
   "cluster": "islands-and-parks",
   "style": "gold",
   "country": "Indonesia"
+ },
+ {
+  "ts": "2026-10-12T18:32+00:00",
+  "topic": "Sanchi",
+  "source": "Sanchi, Madhya Pradesh",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "style": "pink",
+  "country": "India"
  }
 ]
