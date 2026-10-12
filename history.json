@@ -113,5 +113,14 @@
   "cluster": "palaces-and-castles",
   "style": "ice",
   "country": "Bangladesh"
+ },
+ {
+  "ts": "2026-10-12T15:31+00:00",
+  "topic": "Tanjung Puting National Park",
+  "source": "Tanjung Puting",
+  "year": null,
+  "cluster": "islands-and-parks",
+  "style": "gold",
+  "country": "Indonesia"
  }
 ]
