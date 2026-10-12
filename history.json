@@ -77,5 +77,14 @@
   "cluster": "iconic-landmarks",
   "style": "classic",
   "country": "Tanzania"
+ },
+ {
+  "ts": "2026-10-12T06:31+00:00",
+  "topic": "Guyana National Park",
+  "source": "Guyana National Park",
+  "year": null,
+  "cluster": "islands-and-parks",
+  "style": "coral",
+  "country": "Guyana"
  }
 ]
