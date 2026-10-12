@@ -68,5 +68,14 @@
   "cluster": "sacred-and-heritage",
   "style": "pink",
   "country": "Scotland"
+ },
+ {
+  "ts": "2026-10-12T03:55+00:00",
+  "topic": "Tumbatu",
+  "source": "Tumbatu",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "classic",
+  "country": "Tanzania"
  }
 ]
