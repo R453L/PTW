@@ -131,5 +131,14 @@
   "cluster": "ancient-wonders",
   "style": "pink",
   "country": "India"
+ },
+ {
+  "ts": "2026-10-12T22:22+00:00",
+  "topic": "Río Plátano Biosphere Reserve",
+  "source": "Río Plátano Biosphere Reserve",
+  "year": null,
+  "cluster": "sacred-and-heritage",
+  "style": "coral",
+  "country": "Honduras"
  }
 ]
