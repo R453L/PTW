@@ -203,5 +203,14 @@
   "cluster": "islands-and-parks",
   "style": "lime",
   "country": "Mexico"
+ },
+ {
+  "ts": "2026-10-13T18:32+00:00",
+  "topic": "Nijō Castle",
+  "source": "Nijō Castle",
+  "year": null,
+  "cluster": "palaces-and-castles",
+  "style": "ember",
+  "country": "Japan"
  }
 ]
