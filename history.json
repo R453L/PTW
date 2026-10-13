@@ -167,5 +167,14 @@
   "cluster": "natural-wonders",
   "style": "gold",
   "country": "Israel"
+ },
+ {
+  "ts": "2026-10-13T09:31+00:00",
+  "topic": "Atulya Nadheswarar Temple",
+  "source": "Atulya Nadheswarar Temple",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "style": "sun",
+  "country": "India"
  }
 ]
