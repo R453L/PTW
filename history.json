@@ -185,5 +185,14 @@
   "cluster": "sacred-and-heritage",
   "style": "lagoon",
   "country": "Japan"
+ },
+ {
+  "ts": "2026-10-13T13:24+00:00",
+  "topic": "Historic Center of Caxias do Sul",
+  "source": "Historic Center of Caxias do Sul",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "pink",
+  "country": "Brazil"
  }
 ]
