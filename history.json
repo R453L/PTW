@@ -140,5 +140,14 @@
   "cluster": "sacred-and-heritage",
   "style": "coral",
   "country": "Honduras"
+ },
+ {
+  "ts": "2026-10-13T03:30+00:00",
+  "topic": "Fernandina Island",
+  "source": "Fernandina Island",
+  "year": null,
+  "cluster": "natural-wonders",
+  "style": "lime",
+  "country": "Ecuador"
  }
 ]
