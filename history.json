@@ -176,5 +176,14 @@
   "cluster": "ancient-wonders",
   "style": "sun",
   "country": "India"
+ },
+ {
+  "ts": "2026-10-13T12:30+00:00",
+  "topic": "Hōryū-ji",
+  "source": "Hōryū-ji",
+  "year": null,
+  "cluster": "sacred-and-heritage",
+  "style": "lagoon",
+  "country": "Japan"
  }
 ]
