@@ -158,5 +158,14 @@
   "cluster": "iconic-landmarks",
   "style": "classic",
   "country": "Portugal"
+ },
+ {
+  "ts": "2026-10-13T06:31+00:00",
+  "topic": "Cave of Letters",
+  "source": "Cave of Letters",
+  "year": null,
+  "cluster": "natural-wonders",
+  "style": "gold",
+  "country": "Israel"
  }
 ]
