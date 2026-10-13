@@ -149,5 +149,14 @@
   "cluster": "natural-wonders",
   "style": "lime",
   "country": "Ecuador"
+ },
+ {
+  "ts": "2026-10-13T05:05+00:00",
+  "topic": "Santa Justa Lift",
+  "source": "Santa Justa Lift",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "classic",
+  "country": "Portugal"
  }
 ]
