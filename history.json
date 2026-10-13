@@ -194,5 +194,14 @@
   "cluster": "iconic-landmarks",
   "style": "pink",
   "country": "Brazil"
+ },
+ {
+  "ts": "2026-10-13T15:30+00:00",
+  "topic": "Lagunas de Montebello National Park",
+  "source": "Lagunas de Montebello National Park",
+  "year": null,
+  "cluster": "islands-and-parks",
+  "style": "lime",
+  "country": "Mexico"
  }
 ]
