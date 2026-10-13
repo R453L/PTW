@@ -212,5 +212,14 @@
   "cluster": "palaces-and-castles",
   "style": "ember",
   "country": "Japan"
+ },
+ {
+  "ts": "2026-10-13T20:30+00:00",
+  "topic": "Burma Railway",
+  "source": "Burma Railway",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "gold",
+  "country": "Thailand and Myanmar"
  }
 ]
