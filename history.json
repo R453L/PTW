@@ -311,5 +311,14 @@
   "cluster": "sacred-and-heritage",
   "style": "sun",
   "country": "China"
+ },
+ {
+  "ts": "2026-10-14T23:37+00:00",
+  "topic": "Nature reserve",
+  "source": "Nature reserve",
+  "year": null,
+  "cluster": "islands-and-parks",
+  "style": "gold",
+  "country": "United Kingdom"
  }
 ]
