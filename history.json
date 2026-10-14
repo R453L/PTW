@@ -248,5 +248,14 @@
   "cluster": "ancient-wonders",
   "style": "lagoon",
   "country": "United States"
+ },
+ {
+  "ts": "2026-10-14T08:20+00:00",
+  "topic": "Great Mosque of Hama",
+  "source": "Great Mosque of Hama",
+  "year": null,
+  "cluster": "sacred-and-heritage",
+  "style": "pink",
+  "country": "Syria"
  }
 ]
