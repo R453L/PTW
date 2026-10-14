@@ -293,5 +293,14 @@
   "cluster": "ancient-wonders",
   "style": "ember",
   "country": "India"
+ },
+ {
+  "ts": "2026-10-14T18:31+00:00",
+  "topic": "Our Lady of Lebanon",
+  "source": "Our Lady of Lebanon",
+  "year": null,
+  "cluster": "sacred-and-heritage",
+  "style": "classic",
+  "country": "Lebanon"
  }
 ]
