@@ -284,5 +284,14 @@
   "cluster": "natural-wonders",
   "style": "slab",
   "country": "Bosnia and Herzegovina"
+ },
+ {
+  "ts": "2026-10-14T15:30+00:00",
+  "topic": "Group of Monuments at Mahabalipuram",
+  "source": "Group of Monuments at Mahabalipuram",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "style": "ember",
+  "country": "India"
  }
 ]
