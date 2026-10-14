@@ -239,5 +239,14 @@
   "cluster": "islands-and-parks",
   "style": "classic",
   "country": "Trinidad and Tobago"
+ },
+ {
+  "ts": "2026-10-14T06:30+00:00",
+  "topic": "Sunset Crater",
+  "source": "Sunset Crater",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "style": "lagoon",
+  "country": "United States"
  }
 ]
