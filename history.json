@@ -266,5 +266,14 @@
   "cluster": "natural-wonders",
   "style": "sun",
   "country": "Greece"
+ },
+ {
+  "ts": "2026-10-14T12:32+00:00",
+  "topic": "Ukyō-ku",
+  "source": "Ukyō-ku, Kyoto",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "ice",
+  "country": "Japan"
  }
 ]
