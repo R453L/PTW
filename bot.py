@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""World Wonders - Facebook post bot (tourist attractions). Text via Cloudflare Workers AI / a pool of OpenRouter keys, images via Cloudflare Workers AI (FLUX.2 klein 4B)."""
+"""Places To Witness - Facebook post bot (tourist attractions). Text via Cloudflare Workers AI / a pool of OpenRouter keys, images via Cloudflare Workers AI (FLUX.2 klein 4B)."""
 import base64
 import hashlib
 import io
