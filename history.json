@@ -275,5 +275,14 @@
   "cluster": "iconic-landmarks",
   "style": "ice",
   "country": "Japan"
+ },
+ {
+  "ts": "2026-10-14T14:18+00:00",
+  "topic": "Vjetrenica Cave",
+  "source": "Vjetrenica Cave",
+  "year": null,
+  "cluster": "natural-wonders",
+  "style": "slab",
+  "country": "Bosnia and Herzegovina"
  }
 ]
