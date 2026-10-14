@@ -221,5 +221,14 @@
   "cluster": "iconic-landmarks",
   "style": "gold",
   "country": "Thailand and Myanmar"
+ },
+ {
+  "ts": "2026-10-14T00:05+00:00",
+  "topic": "Bernina railway line",
+  "source": "Bernina railway line",
+  "year": null,
+  "cluster": "palaces-and-castles",
+  "style": "coral",
+  "country": "Switzerland and Italy"
  }
 ]
