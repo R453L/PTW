@@ -374,5 +374,14 @@
   "cluster": "ancient-wonders",
   "style": "pink",
   "country": "Multiple countries"
+ },
+ {
+  "ts": "2026-10-15T13:54+00:00",
+  "topic": "Queen Elizabeth Islands",
+  "source": "Queen Elizabeth Islands",
+  "year": null,
+  "cluster": "natural-wonders",
+  "style": "ice",
+  "country": "Canada"
  }
 ]
