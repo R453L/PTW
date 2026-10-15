@@ -320,5 +320,14 @@
   "cluster": "islands-and-parks",
   "style": "gold",
   "country": "United Kingdom"
+ },
+ {
+  "ts": "2026-10-15T02:51+00:00",
+  "topic": "Holy Trinity Cathedral",
+  "source": "Holy Trinity Cathedral, Addis Ababa",
+  "year": null,
+  "cluster": "palaces-and-castles",
+  "style": "lagoon",
+  "country": "Ethiopia"
  }
 ]
