@@ -338,5 +338,14 @@
   "cluster": "iconic-landmarks",
   "style": "lime",
   "country": "United States"
+ },
+ {
+  "ts": "2026-10-15T06:30+00:00",
+  "topic": "Gsumge Mani Stone Castle",
+  "source": "Gsumge Mani Stone Castle",
+  "year": null,
+  "cluster": "palaces-and-castles",
+  "style": "slab",
+  "country": "China"
  }
 ]
