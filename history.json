@@ -329,5 +329,14 @@
   "cluster": "palaces-and-castles",
   "style": "lagoon",
   "country": "Ethiopia"
+ },
+ {
+  "ts": "2026-10-15T03:30+00:00",
+  "topic": "French Quarter",
+  "source": "French Quarter",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "lime",
+  "country": "United States"
  }
 ]
