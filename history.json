@@ -347,5 +347,14 @@
   "cluster": "palaces-and-castles",
   "style": "slab",
   "country": "China"
+ },
+ {
+  "ts": "2026-10-15T08:02+00:00",
+  "topic": "Florida panhandle",
+  "source": "Florida panhandle",
+  "year": null,
+  "cluster": "islands-and-parks",
+  "style": "coral",
+  "country": "United States"
  }
 ]
