@@ -392,5 +392,14 @@
   "cluster": "iconic-landmarks",
   "style": "lagoon",
   "country": "Nepal"
+ },
+ {
+  "ts": "2026-10-15T23:31+00:00",
+  "topic": "Dniester Canyon",
+  "source": "Dniester Canyon",
+  "year": null,
+  "cluster": "natural-wonders",
+  "style": "slab",
+  "country": "Ukraine"
  }
 ]
