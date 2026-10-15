@@ -356,5 +356,14 @@
   "cluster": "islands-and-parks",
   "style": "coral",
   "country": "United States"
+ },
+ {
+  "ts": "2026-10-15T09:30+00:00",
+  "topic": "Nueva Cádiz",
+  "source": "Nueva Cádiz",
+  "year": null,
+  "cluster": "ancient-wonders",
+  "style": "sun",
+  "country": "Venezuela"
  }
 ]
