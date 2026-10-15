@@ -383,5 +383,14 @@
   "cluster": "natural-wonders",
   "style": "ice",
   "country": "Canada"
+ },
+ {
+  "ts": "2026-10-15T18:51+00:00",
+  "topic": "Annapurna Circuit",
+  "source": "Annapurna Circuit",
+  "year": null,
+  "cluster": "iconic-landmarks",
+  "style": "lagoon",
+  "country": "Nepal"
  }
 ]
