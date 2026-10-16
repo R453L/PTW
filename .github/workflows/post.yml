@@ -1,9 +1,8 @@
 name: post
 
 on:
-  schedule:
-    - cron: "0 */3 * * *"   # 8 posts a day
-  workflow_dispatch:
+  repository_dispatch:
+    types: [external-trigger]
 
 permissions:
   contents: write
